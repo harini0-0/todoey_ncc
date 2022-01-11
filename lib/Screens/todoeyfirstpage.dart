@@ -1,19 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../Model/taskData.dart';
 import 'package:todoey_ncc/Screens/ModalBottomSheet.dart';
 
-class HomeScreen extends StatefulWidget {
-  HomeScreen({Key? key}) : super(key: key);
-
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  // ignore: non_constant_identifier_names
-  int n_tasks = 3;
-  // ignore: non_constant_identifier_names
-  final mainList = TaskData();
+// ignore: must_be_immutable
+class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -69,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 10,
                     ),
                     Text(
-                      '$n_tasks Tasks',
+                      '${Provider.of<TaskData>(context, listen: true).taskCount} Tasks',
                       style: TextStyle(color: Colors.white, fontSize: 15),
                     ),
                   ],
@@ -83,25 +74,39 @@ class _HomeScreenState extends State<HomeScreen> {
                     topLeft: Radius.circular(40)),
                 color: Colors.white,
               ),
-              child: ListView.builder(
-                itemCount: n_tasks,
-                itemBuilder: (BuildContext context, int index) {
-                  return ListTile(
-                      title: Text(
-                        "${mainList.tasklist[index].taskname}",
-                        style: TextStyle(
-                          decoration: mainList.tasklist[index].isDone
-                              ? TextDecoration.lineThrough
-                              : null,
-                        ),
-                      ),
-                      trailing: Checkbox(
-                          value: mainList.tasklist[index].isDone,
-                          onChanged: (newvalue) {
-                            setState(() {
-                              mainList.tasklist[index].toggleVar();
-                            });
-                          }));
+              child: Consumer<TaskData>(
+                builder: (context, taskData, child) {
+                  return ListView.builder(
+                    itemCount:
+                        Provider.of<TaskData>(context, listen: false).taskCount,
+                    itemBuilder: (BuildContext context, int index) {
+                      return GestureDetector(
+                        onLongPress: () {
+                          Provider.of<TaskData>(context, listen: false)
+                              .deleteTask(index);
+                        },
+                        child: ListTile(
+                            title: Text(
+                              "${Provider.of<TaskData>(context, listen: false).title(index)}",
+                              style: TextStyle(
+                                decoration: Provider.of<TaskData>(context,
+                                            listen: false)
+                                        .isDone(index)
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                              ),
+                            ),
+                            trailing: Checkbox(
+                                value: Provider.of<TaskData>(context,
+                                        listen: false)
+                                    .isDone(index),
+                                onChanged: (newvalue) {
+                                  Provider.of<TaskData>(context, listen: false)
+                                      .updateTask(index);
+                                })),
+                      );
+                    },
+                  );
                 },
               ),
             ))
